@@ -2,6 +2,8 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
+const { spawn } = require('child_process');
+const os = require('os');
 
 const app = express();
 const server = http.createServer(app);
@@ -13,12 +15,55 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+let shellProcess = null;
+
 io.on('connection', (socket) => {
   console.log('User connected');
   
+  socket.emit('output', `\x1b[1;36m━`.repeat(40) + '\r\n');
+  socket.emit('output', `\x1b[1;32m  ██████╗ ███████╗████████╗██████╗  ██████╗ \x1b[0m\r\n`);
+  socket.emit('output', `\x1b[1;32m  ██╔══██╗██╔════╝╚══██╔══╝██╔══██╗██╔═══██╗\x1b[0m\r\n`);
+  socket.emit('output', `\x1b[1;32m  ██████╔╝█████╗     ██║   ██████╔╝██║   ██║\x1b[0m\r\n`);
+  socket.emit('output', `\x1b[1;32m  ██╔══██╗██╔══╝     ██║   ██╔══██╗██║   ██║\x1b[0m\r\n`);
+  socket.emit('output', `\x1b[1;32m  ██║  ██║███████╗   ██║   ██║  ██║╚██████╔╝\x1b[0m\r\n`);
+  socket.emit('output', `\x1b[1;32m  ╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ \x1b[0m\r\n`);
+  socket.emit('output', `\x1b[1;36m━`.repeat(40) + '\r\n\r\n');
+  socket.emit('output', `\x1b[1;33mWelcome to iSH Web Terminal!\x1b[0m\r\n`);
+  socket.emit('output', `OS: ${os.type()} ${os.release()}\r\n`);
+  socket.emit('output', `Hostname: ${os.hostname()}\r\n`);
+  socket.emit('output', `User: ${os.userInfo().username}\r\n\r\n`);
+  socket.emit('output', `Type 'help' for available commands\r\n\r\n`);
+  
+  if (!shellProcess) {
+    shellProcess = spawn('/bin/sh', ['-i'], {
+      shell: '/bin/bash',
+      env: { ...process.env, TERM: 'xterm-256color' }
+    });
+    
+    shellProcess.stdout.on('data', (data) => {
+      socket.emit('output', data.toString());
+    });
+    
+    shellProcess.stderr.on('data', (data) => {
+      socket.emit('output', `\x1b[31m${data.toString()}\x1b[0m`);
+    });
+    
+    shellProcess.on('close', (code) => {
+      socket.emit('output', `\r\n\x1b[33mShell closed with code ${code}\x1b[0m\r\n`);
+      shellProcess = null;
+    });
+    
+    shellProcess.on('error', (err) => {
+      socket.emit('output', `\x1b[31mShell error: ${err.message}\x1b[0m\r\n`);
+    });
+  }
+  
   socket.on('command', (cmd) => {
-    const result = executeCommand(cmd);
-    socket.emit('output', result);
+    if (shellProcess) {
+      shellProcess.stdin.write(cmd);
+    } else {
+      socket.emit('output', '\x1b[31mShell not available. Please refresh the page.\x1b[0m\r\n');
+    }
   });
   
   socket.on('specialKey', (key) => {
@@ -30,45 +75,51 @@ io.on('connection', (socket) => {
   });
 });
 
-function executeCommand(cmd) {
-  if (!cmd.trim()) return '';
-  
-  try {
-    const result = eval(cmd);
-    return result !== undefined ? String(result) : '';
-  } catch (error) {
-    return error.message;
-  }
-}
-
 function handleSpecialKey(key, socket) {
+  if (!shellProcess) return;
+  
   switch(key) {
     case 'ctrl+c':
-      socket.emit('output', '^C');
+      shellProcess.stdin.write('\x03');
       break;
     case 'ctrl+d':
-      socket.emit('output', 'exit');
+      shellProcess.stdin.write('\x04');
+      break;
+    case 'ctrl+z':
+      shellProcess.stdin.write('\x1a');
+      break;
+    case 'ctrl+l':
+      shellProcess.stdin.write('\x0c');
+      break;
+    case 'ctrl+a':
+      shellProcess.stdin.write('\x01');
+      break;
+    case 'ctrl+e':
+      shellProcess.stdin.write('\x05');
+      break;
+    case 'ctrl+u':
+      shellProcess.stdin.write('\x15');
+      break;
+    case 'ctrl+k':
+      shellProcess.stdin.write('\x0b');
       break;
     case 'esc':
-      socket.emit('output', '\x1b');
+      shellProcess.stdin.write('\x1b');
       break;
     case 'tab':
-      socket.emit('output', '\t');
-      break;
-    case 'alt':
-      socket.emit('output', '\x1b');
+      shellProcess.stdin.write('\t');
       break;
     case 'up':
-      socket.emit('output', '\x1b[A');
+      shellProcess.stdin.write('\x1b[A');
       break;
     case 'down':
-      socket.emit('output', '\x1b[B');
+      shellProcess.stdin.write('\x1b[B');
       break;
     case 'left':
-      socket.emit('output', '\x1b[D');
+      shellProcess.stdin.write('\x1b[D');
       break;
-    case 'power':
-      socket.emit('output', 'Power toggled');
+    case 'right':
+      shellProcess.stdin.write('\x1b[C');
       break;
   }
 }

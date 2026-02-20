@@ -6,15 +6,41 @@
     <title>iSH Web Terminal</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 </head>
 <body>
     <div class="container">
         <header class="header">
             <div class="header-content">
-                <span class="title">iSH Web</span>
-                <div class="connection-status" id="connectionStatus">
-                    <span class="status-dot offline"></span>
-                    <span class="status-text">Disconnected</span>
+                <div class="header-left">
+                    <div class="logo">
+                        <div class="logo-icon">>_</div>
+                        <span class="title">iSH Web</span>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="connection-status" id="connectionStatus">
+                        <span class="status-dot offline"></span>
+                        <span class="status-text">Disconnected</span>
+                    </div>
+                    <div class="header-actions">
+                        <button class="header-btn" id="restartBtn" title="Restart Shell">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M23 4v6h-6M1 20v-6h6"/>
+                                <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+                            </svg>
+                            <span>Restart</span>
+                        </button>
+                        <button class="header-btn" id="newTabBtn" title="New Tab">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                <line x1="12" y1="8" x2="12" y2="16"/>
+                                <line x1="8" y1="12" x2="16" y2="12"/>
+                            </svg>
+                            <span>New</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </header>
@@ -25,28 +51,80 @@
             </div>
 
             <div class="keyboard-toolbar" id="keyboardToolbar">
-                <div class="toolbar-buttons">
-                    <button class="toolbar-btn" id="pasteBtn" title="Paste">
-                        <img src="icons/paste.svg" alt="Paste">
-                    </button>
-                    <button class="toolbar-btn" id="clearBtn" title="Clear"><img src="icons/clear.svg" alt="Clear"></button>
-                    <button class="toolbar-btn" id="keyboardToggle" title="Toggle Keyboard">
-                        <img src="icons/keyboard.svg" alt="Keyboard">
-                    </button>
+                <div class="toolbar-top">
+                    <div class="quick-actions">
+                        <button class="quick-action" data-cmd="ls -la">ls -la</button>
+                        <button class="quick-action" data-cmd="pwd">pwd</button>
+                        <button class="quick-action" data-cmd="whoami">whoami</button>
+                        <button class="quick-action" data-cmd="uname -a">uname</button>
+                        <button class="quick-action" data-cmd="top">top</button>
+                    </div>
+                    <div class="toolbar-buttons">
+                        <button class="toolbar-btn primary" id="pasteBtn" title="Paste">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/>
+                                <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                            </svg>
+                            <span>Paste</span>
+                        </button>
+                        <button class="toolbar-btn" id="clearBtn" title="Clear Screen">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+                            </svg>
+                            <span>Clear</span>
+                        </button>
+                        <button class="toolbar-btn" id="keyboardToggle" title="Toggle Keyboard">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2" y="4" width="20" height="16" rx="2" ry="2"/>
+                                <line x1="6" y1="8" x2="6" y2="8"/>
+                                <line x1="10" y1="8" x2="10" y2="8"/>
+                                <line x1="14" y1="8" x2="14" y2="8"/>
+                                <line x1="18" y1="8" x2="18" y2="8"/>
+                                <line x1="8" y1="12" x2="8" y2="12"/>
+                                <line x1="12" y1="12" x2="12" y2="12"/>
+                                <line x1="16" y1="12" x2="16" y2="12"/>
+                                <line x1="7" y1="16" x2="17" y2="16"/>
+                            </svg>
+                            <span>Keyboard</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="custom-keyboard" id="customKeyboard">
                     <div class="keyboard-row">
-                        <button class="key special" data-key="ctrl">Ctrl</button>
-                        <button class="key special" data-key="alt">Alt</button>
+                        <button class="key special ctrl" data-key="ctrl">Ctrl</button>
+                        <button class="key special alt" data-key="alt">Alt</button>
                         <button class="key special" data-key="esc">Esc</button>
                         <button class="key special" data-key="tab">Tab</button>
+                        <button class="key special" data-key="pipe">|</button>
+                        <button class="key special" data-key="slash">/</button>
+                        <button class="key special" data-key="dot">.</button>
+                    </div>
+                    <div class="keyboard-row">
+                        <button class="key special" data-key="home">Home</button>
+                        <button class="key special" data-key="end">End</button>
                         <button class="key special" data-key="up">↑</button>
                         <button class="key special" data-key="down">↓</button>
                         <button class="key special" data-key="left">←</button>
                         <button class="key special" data-key="right">→</button>
-                        <button class="key special" data-key="paste">Paste</button>
-                        <button class="key special" data-key="power">Power</button>
+                        <button class="key special" data-key="pgup">PgUp</button>
+                        <button class="key special" data-key="pgdn">PgDn</button>
+                    </div>
+                    <div class="keyboard-row">
+                        <button class="key wide" data-key="ctrl-c">Ctrl+C</button>
+                        <button class="key wide" data-key="ctrl-d">Ctrl+D</button>
+                        <button class="key wide" data-key="ctrl-z">Ctrl+Z</button>
+                        <button class="key wide" data-key="ctrl-l">Ctrl+L</button>
+                    </div>
+                    <div class="keyboard-row">
+                        <button class="key wide" data-key="ctrl-a">Ctrl+A</button>
+                        <button class="key wide" data-key="ctrl-e">Ctrl+E</button>
+                        <button class="key wide" data-key="ctrl-u">Ctrl+U</button>
+                        <button class="key wide" data-key="ctrl-k">Ctrl+K</button>
+                    </div>
+                    <div class="keyboard-row">
+                        <button class="key space" data-key="space">Space</button>
                     </div>
                 </div>
             </div>
