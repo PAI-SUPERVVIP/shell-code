@@ -67,8 +67,8 @@ function handleSpecialKey(key, socket) {
     case 'left':
       socket.emit('output', '\x1b[D');
       break;
-    case 'right':
-      socket.emit('output', '\x1b[C');
+    case 'power':
+      socket.emit('output', 'Power toggled');
       break;
   }
 }
