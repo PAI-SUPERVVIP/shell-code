@@ -7,13 +7,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
     const terminalContainer = document.getElementById('terminal');
     const keyboardToolbar = document.getElementById('keyboardToolbar');
+    const customKeyboard = document.getElementById('customKeyboard');
     const keyboardToggle = document.getElementById('keyboardToggle');
     const pasteBtn = document.getElementById('pasteBtn');
-    const clearBtn = document.getElementById('clearBtn');
     
     let terminal;
     let fitAddon;
     let isKeyboardVisible = false;
+    let isCtrlPressed = false;
+    let isAltPressed = false;
     let shellActive = true;
     
     // Initialize terminal with modern theme
@@ -97,28 +99,76 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // Setup quick action buttons
-    function setupQuickActions() {
-        const quickActions = document.querySelectorAll('.quick-action');
-        quickActions.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const cmd = btn.dataset.cmd;
-                terminal.write(cmd + '\r');
+    // Setup keyboard buttons
+    function setupKeyboard() {
+        const keys = document.querySelectorAll('.key');
+        
+        keys.forEach(key => {
+            key.addEventListener('click', () => {
+                const keyValue = key.dataset.key;
+                handleKeyPress(keyValue);
+                key.classList.add('active');
+                setTimeout(() => key.classList.remove('active'), 100);
             });
         });
     }
     
-    // Keyboard toggle - hide/show toolbar
-    const quickActions = document.querySelector('.quick-actions');
+    // Handle key press from custom keyboard
+    function handleKeyPress(key) {
+        if (!shellActive) {
+            terminal.write('\x1b[31mShell not active. Refresh to reconnect.\x1b[0m\r\n');
+            return;
+        }
+        
+        switch(key) {
+            case 'esc':
+                socket.emit('specialKey', 'esc');
+                break;
+            case 'tab':
+                socket.emit('specialKey', 'tab');
+                break;
+            case 'ctrl':
+                isCtrlPressed = !isCtrlPressed;
+                document.querySelector('[data-key="ctrl"]').classList.toggle('active', isCtrlPressed);
+                break;
+            case 'alt':
+                isAltPressed = !isAltPressed;
+                document.querySelector('[data-key="alt"]').classList.toggle('active', isAltPressed);
+                break;
+            case 'left':
+                socket.emit('specialKey', 'left');
+                break;
+            case 'right':
+                socket.emit('specialKey', 'right');
+                break;
+            case 'up':
+                socket.emit('specialKey', 'up');
+                break;
+            case 'down':
+                socket.emit('specialKey', 'down');
+                break;
+        }
+        
+        if (['esc', 'tab', 'left', 'right', 'up', 'down'].includes(key)) {
+            setTimeout(() => {
+                isCtrlPressed = false;
+                isAltPressed = false;
+                document.querySelector('[data-key="ctrl"]')?.classList.remove('active');
+                document.querySelector('[data-key="alt"]')?.classList.remove('active');
+            }, 100);
+        }
+    }
+    
+    // Keyboard toggle
     keyboardToggle.addEventListener('click', () => {
         isKeyboardVisible = !isKeyboardVisible;
         if (isKeyboardVisible) {
             keyboardToolbar.classList.remove('hidden');
-            quickActions.classList.remove('hidden');
+            customKeyboard.classList.remove('hidden');
             keyboardToggle.classList.add('active');
         } else {
             keyboardToolbar.classList.add('hidden');
-            quickActions.classList.add('hidden');
+            customKeyboard.classList.add('hidden');
             keyboardToggle.classList.remove('active');
         }
         setTimeout(() => fitAddon.fit(), 300);
@@ -136,12 +186,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    // Clear functionality
-    clearBtn.addEventListener('click', () => {
-        terminal.clear();
-        terminal.write('\x1b[2J\x1b[H');
-    });
-    
     // Handle window resize
     window.addEventListener('resize', () => {
         if (fitAddon) {
@@ -151,13 +195,13 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize
     initTerminal();
-    setupQuickActions();
+    setupKeyboard();
     
-    // Auto-hide toolbar on mobile
+    // Auto-hide keyboard on mobile
     if (window.innerWidth < 768) {
         setTimeout(() => {
             keyboardToolbar.classList.add('hidden');
-            quickActions.classList.add('hidden');
+            customKeyboard.classList.add('hidden');
         }, 3000);
     }
 });
