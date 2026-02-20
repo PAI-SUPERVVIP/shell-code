@@ -219,13 +219,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Keyboard toggle
+    const quickActions = document.querySelector('.quick-actions');
     keyboardToggle.addEventListener('click', () => {
         isKeyboardVisible = !isKeyboardVisible;
         if (isKeyboardVisible) {
             keyboardToolbar.classList.remove('hidden');
+            quickActions.classList.remove('hidden');
             keyboardToggle.classList.add('active');
         } else {
             keyboardToolbar.classList.add('hidden');
+            quickActions.classList.add('hidden');
             keyboardToggle.classList.remove('active');
         }
         setTimeout(() => fitAddon.fit(), 300);
@@ -276,6 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.innerWidth < 768) {
         setTimeout(() => {
             keyboardToolbar.classList.add('hidden');
+            quickActions.classList.add('hidden');
         }, 3000);
     }
 });

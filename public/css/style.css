@@ -399,15 +399,18 @@ body {
     min-width: 80px;
 }
 
-/* Quick Actions */
+/* Quick Actions - แสดง/ซ่อนพร้อม keyboard */
 .quick-actions {
     display: flex;
     gap: 0.5rem;
     justify-content: center;
     padding: 0.25rem 0;
+    transition: all 0.3s ease;
 }
 
-.quick-action {
+.quick-actions.hidden {
+    display: none;
+}
     background: transparent;
     border: 1px dashed var(--border-color);
     color: var(--text-muted);
