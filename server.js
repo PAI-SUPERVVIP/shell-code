@@ -75,6 +75,6 @@ function handleSpecialKey(key, socket) {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
-    console.log(`iSH-Web running at http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
     console.log(`For mobile: http://<your-ip>:${PORT}`);
 });
