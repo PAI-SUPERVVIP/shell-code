@@ -7,18 +7,6 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-COPY vscode-extension /home/coder/.code-server/extensions/opencode-terminal
-
-RUN code-server --install-extension /home/coder/.code-server/extensions/opencode-terminal || true
-
-RUN mkdir -p /home/coder/.local/bin && \
-    wget -q https://github.com/coder/code-server/releases/download/v4.96.2/code-server-4.96.2-linux-amd64.tar.gz -O /tmp/code-server.tar.gz && \
-    tar -xzf /tmp/code-server.tar.gz -C /tmp && \
-    cp /tmp/code-server-4.96.2-linux-amd64/bin/code-server /home/coder/.local/bin/ && \
-    rm -rf /tmp/code-server*
-
-RUN sed -i 's/<\/body>/<script src="\/static\/virtual-keyboard.js"><\/script><\/body>/g' /usr/lib/code-server/src/browser/pages/vscode.html || true
-
 RUN cat > /usr/lib/code-server/src/browser/pages/virtual-keyboard.js << 'EOF'
 (function() {
     const keyboardCSS = `
@@ -35,23 +23,24 @@ RUN cat > /usr/lib/code-server/src/browser/pages/virtual-keyboard.js << 'EOF'
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
         }
         .vk-container.visible { display: block; }
-        .vk-row { display: flex; justify-content: center; gap: 4px; margin-bottom: 6px; }
+        .vk-row { display: flex; justify-content: center; gap: 3px; margin-bottom: 5px; }
         .vk-key {
             background: #3c3c3c;
             color: #fff;
             border: none;
             border-radius: 4px;
-            min-width: 36px;
-            height: 42px;
-            font-size: 16px;
+            min-width: 26px;
+            height: 38px;
+            font-size: 12px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         .vk-key:active { background: #5a5a5a; }
-        .vk-key.wide { min-width: 56px; }
-        .vk-key.space { min-width: 180px; }
+        .vk-key.wide { min-width: 40px; }
+        .vk-key.space { min-width: 120px; }
+        .vk-key.thai-mode { background: #2d5a3d; }
         .vk-toggle {
             position: fixed;
             bottom: 20px;
@@ -60,12 +49,26 @@ RUN cat > /usr/lib/code-server/src/browser/pages/virtual-keyboard.js << 'EOF'
             color: white;
             border: none;
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            font-size: 24px;
+            width: 48px;
+            height: 48px;
+            font-size: 22px;
             cursor: pointer;
             z-index: 99998;
             box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        .vk-lang {
+            position: fixed;
+            bottom: 78: 20pxpx;
+            right;
+            background: #e55c2b;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 99998;
         }
     `;
     
@@ -73,7 +76,7 @@ RUN cat > /usr/lib/code-server/src/browser/pages/virtual-keyboard.js << 'EOF'
     style.textContent = keyboardCSS;
     document.head.appendChild(style);
     
-    const keys = [
+    const enKeys = [
         ['`','1','2','3','4','5','6','7','8','9','0','-','=','⌫'],
         ['Tab','q','w','e','r','t','y','u','i','o','p','[',']','\\'],
         ['Caps','a','s','d','f','g','h','j','k','l',';','\'','Enter'],
@@ -81,23 +84,42 @@ RUN cat > /usr/lib/code-server/src/browser/pages/virtual-keyboard.js << 'EOF'
         ['Ctrl','Alt','Space','Alt','Ctrl','←','↓','↑','→']
     ];
     
+    const thKeys = [
+        ['ฅ','ๅ','ๆ','ง','ฃ','ฅ','ช','ซ','ฌ','ญ','ฎ','ฏ','ฐ','⌫'],
+        ['๏','ป','ฉ','อ','ฮ','ิ','ึ','ค','ต','จ','ข','ช','ฑ','ฒ'],
+        ['ฤ','ฆ','ฏ','ณ','ช','ซ','ฎ','ญ','ฐ','ฑ','ฒ','ณ','Enter'],
+        ['ฯ','ฎ','ฑ','ฒ','ฬ','ฮ','อ','ฯ','ฝ','ฟ','ผ','Shift'],
+        ['Ctrl','Alt','Space','Alt','Ctrl','←','↓','↑','→']
+    ];
+    
+    let isThai = false;
+    let shiftPressed = false;
+    
     const container = document.createElement('div');
     container.className = 'vk-container';
     
-    keys.forEach((row, ri) => {
-        const rowDiv = document.createElement('div');
-        rowDiv.className = 'vk-row';
-        row.forEach(key => {
-            const btn = document.createElement('button');
-            btn.className = 'vk-key';
-            if (key.length > 1) btn.classList.add('wide');
-            if (key === 'Space') btn.classList.add('space');
-            btn.textContent = key === 'Space' ? 'space' : key;
-            btn.onclick = () => sendKey(key);
-            rowDiv.appendChild(btn);
+    function render() {
+        container.innerHTML = '';
+        const keys = isThai ? thKeys : enKeys;
+        
+        keys.forEach((row) => {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'vk-row';
+            row.forEach(key => {
+                const btn = document.createElement('button');
+                btn.className = 'vk-key';
+                if (key.length > 1) btn.classList.add('wide');
+                if (key === 'Space') btn.classList.add('space');
+                if (isThai) btn.classList.add('thai-mode');
+                btn.textContent = key === 'Space' ? 'space' : key;
+                btn.onclick = () => sendKey(key);
+                rowDiv.appendChild(btn);
+            });
+            container.appendChild(rowDiv);
         });
-        container.appendChild(rowDiv);
-    });
+    }
+    
+    render();
     document.body.appendChild(container);
     
     const toggle = document.createElement('button');
@@ -106,22 +128,35 @@ RUN cat > /usr/lib/code-server/src/browser/pages/virtual-keyboard.js << 'EOF'
     toggle.onclick = () => container.classList.toggle('visible');
     document.body.appendChild(toggle);
     
-    function sendKey(key) {
-        const event = new KeyboardEvent('keydown', {
-            bubbles: true,
-            cancelable: true,
-            key: key === '⌫' ? 'Backspace' : key === 'Space' ? ' ' : key,
-            keyCode: key === 'Enter' ? 13 : key === 'Tab' ? 9 : key === 'Escape' ? 27 : key.charCodeAt(0)
-        });
-        document.activeElement.dispatchEvent(event);
-    }
+    const langBtn = document.createElement('button');
+    langBtn.className = 'vk-lang';
+    langBtn.textContent = 'TH';
+    langBtn.onclick = () => {
+        isThai = !isThai;
+        langBtn.textContent = isThai ? 'EN' : 'TH';
+        render();
+    };
+    document.body.appendChild(langBtn);
     
-    const searchParams = new URLSearchParams(window.location.search);
-    if (searchParams.get('vk') === '1') {
-        container.classList.add('visible');
+    function sendKey(key) {
+        let k = key;
+        if (key === '⌫') k = 'Backspace';
+        else if (key === 'Space') k = ' ';
+        
+        document.activeElement?.dispatchEvent(new KeyboardEvent('keydown', {
+            bubbles: true, cancelable: true, key: k
+        }));
+        
+        setTimeout(() => {
+            document.activeElement?.dispatchEvent(new KeyboardEvent('keyup', {
+                bubbles: true, key: k
+            }));
+        }, 50);
     }
 })();
-`;
+EOF
+
+RUN sed -i 's|</body>|</body><script src="/static/virtual-keyboard.js"></script>|' /usr/lib/code-server/src/browser/pages/vscode.html
 
 USER coder
 
