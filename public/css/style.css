@@ -1,0 +1,355 @@
+/* iSH Web Terminal Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #000;
+    color: #fff;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    background: linear-gradient(180deg, #2d3748 0%, #1a202c 100%);
+    border-bottom: 1px solid #4a5568;
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.connection-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #e53e3e;
+}
+
+.status-dot.online {
+    background: #48bb78;
+}
+
+.status-dot.offline {
+    background: #e53e3e;
+}
+
+.status-text {
+    font-size: 0.8rem;
+    color: #cbd5e0;
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #000;
+}
+
+.terminal-container {
+    flex: 1;
+    padding: 1rem;
+    position: relative;
+}
+
+.terminal {
+    height: 100%;
+    background: #000;
+    color: #fff;
+    border: none;
+    resize: none;
+    outline: none;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.4;
+    padding: 0;
+}
+
+.xterm {
+    height: 100% !important;
+    background: #000 !important;
+}
+
+.xterm-viewport {
+    background: #000 !important;
+}
+
+.xterm-cursor {
+    background: #fff !important;
+}
+
+.xterm-text:focus {
+    outline: none;
+}
+
+.keyboard-toolbar {
+    background: linear-gradient(180deg, #2d3748 0%, #1a202c 100%);
+    border-top: 1px solid #4a5568;
+    padding: 0.5rem;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease;
+    transform: translateY(0);
+}
+
+.keyboard-toolbar.hidden {
+    transform: translateY(100%);
+}
+
+.toolbar-buttons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    margin-bottom: 0.5rem;
+}
+
+.toolbar-btn {
+    background: #4a5568;
+    border: 1px solid #718096;
+    color: #cbd5e0;
+    padding: 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: all 0.2s ease;
+}
+
+.toolbar-btn:hover {
+    background: #718096;
+    color: #fff;
+}
+
+.toolbar-btn img {
+    width: 16px;
+    height: 16px;
+}
+
+.custom-keyboard {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.keyboard-row {
+    display: flex;
+    gap: 0.25rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.key {
+    background: #4a5568;
+    border: 1px solid #718096;
+    color: #cbd5e0;
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    min-width: 40px;
+    text-align: center;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.key:hover {
+    background: #718096;
+    color: #fff;
+}
+
+.key:active {
+    background: #2d3748;
+    transform: scale(0.95);
+}
+
+.key.special {
+    background: #2d3748;
+    color: #4a5568;
+    font-weight: 500;
+}
+
+.key.special:hover {
+    background: #4a5568;
+    color: #cbd5e0;
+}
+
+.key.special:active {
+    background: #1a202c;
+}
+
+.capslock {
+    background: #805ad5;
+    color: #fff;
+}
+
+.capslock.active {
+    background: #9f7aea;
+}
+
+.shift {
+    background: #805ad5;
+    color: #fff;
+}
+
+.shift.active {
+    background: #9f7aea;
+}
+
+@media (max-width: 768px) {
+    .header {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .title {
+        font-size: 1rem;
+    }
+    
+    .terminal-container {
+        padding: 0.5rem;
+    }
+    
+    .keyboard-toolbar {
+        padding: 0.25rem;
+    }
+    
+    .toolbar-buttons {
+        gap: 0.25rem;
+    }
+    
+    .toolbar-btn {
+        padding: 0.4rem;
+        font-size: 0.75rem;
+    }
+    
+    .key {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.7rem;
+        min-width: 35px;
+    }
+    
+    .keyboard-row {
+        gap: 0.2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .header {
+        padding: 0.5rem;
+    }
+    
+    .title {
+        font-size: 0.9rem;
+    }
+    
+    .terminal-container {
+        padding: 0.25rem;
+    }
+    
+    .keyboard-toolbar {
+        padding: 0.2rem;
+    }
+    
+    .toolbar-buttons {
+        gap: 0.2rem;
+    }
+    
+    .toolbar-btn {
+        padding: 0.3rem;
+        font-size: 0.7rem;
+    }
+    
+    .key {
+        padding: 0.3rem 0.5rem;
+        font-size: 0.6rem;
+        min-width: 30px;
+    }
+    
+    .keyboard-row {
+        gap: 0.15rem;
+    }
+}
+
+/* Loading states */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Terminal output styling */
+.terminal-output {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    padding: 0.5rem;
+    min-height: 100px;
+}
+
+.terminal-input {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+}
+
+.input-prompt {
+    color: #48bb78;
+    font-weight: bold;
+}
+
+.input-field {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #fff;
+    outline: none;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #2d3748;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #4a5568;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #718096;
+}

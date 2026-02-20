@@ -1,0 +1,53 @@
+{
+  "name": "opencode-terminal",
+  "displayName": "OpenCode Terminal",
+  "description": "Connect to your OpenCode web terminal directly from VS Code",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other",
+    "Terminal"
+  ],
+  "activationEvents": [
+    "onCommand:opencode-terminal.connect"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "opencode-terminal.connect",
+        "title": "Connect to OpenCode Terminal",
+        "category": "OpenCode"
+      }
+    ],
+    "configuration": {
+      "title": "OpenCode Terminal",
+      "properties": {
+        "opencode-terminal.url": {
+          "type": "string",
+          "default": "http://localhost:3000",
+          "description": "URL of your OpenCode terminal server"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/mocha": "^9.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@typescript-eslint/parser": "^5.0.0",
+    "eslint": "^8.0.0",
+    "mocha": "^9.0.0",
+    "typescript": "^4.7.0"
+  }
+}

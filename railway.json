@@ -1,0 +1,14 @@
+{
+  "build": {
+    "docker": {
+      "dockerfilePath": "Dockerfile",
+      "buildTarget": "railway"
+    }
+  },
+  "deploy": {
+    "docker": {
+      "dockerfilePath": "Dockerfile",
+      "buildTarget": "railway"
+    }
+  }
+}
