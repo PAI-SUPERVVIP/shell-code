@@ -7,18 +7,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
     const terminalContainer = document.getElementById('terminal');
     const keyboardToolbar = document.getElementById('keyboardToolbar');
-    const customKeyboard = document.getElementById('customKeyboard');
     const keyboardToggle = document.getElementById('keyboardToggle');
     const pasteBtn = document.getElementById('pasteBtn');
     const clearBtn = document.getElementById('clearBtn');
-    const restartBtn = document.getElementById('restartBtn');
-    const newTabBtn = document.getElementById('newTabBtn');
     
     let terminal;
     let fitAddon;
     let isKeyboardVisible = false;
-    let isCtrlPressed = false;
-    let isAltPressed = false;
     let shellActive = true;
     
     // Initialize terminal with modern theme
@@ -102,20 +97,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // Setup keyboard buttons
-    function setupKeyboard() {
-        const keys = document.querySelectorAll('.key');
-        
-        keys.forEach(key => {
-            key.addEventListener('click', () => {
-                const keyValue = key.dataset.key;
-                handleKeyPress(keyValue);
-                key.classList.add('active');
-                setTimeout(() => key.classList.remove('active'), 100);
-            });
-        });
-        
-        // Quick action buttons
+    // Setup quick action buttons
+    function setupQuickActions() {
         const quickActions = document.querySelectorAll('.quick-action');
         quickActions.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -125,100 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Handle key press from custom keyboard
-    function handleKeyPress(key) {
-        if (!shellActive) {
-            terminal.write('\x1b[31mShell not active. Click Restart to reconnect.\x1b[0m\r\n');
-            return;
-        }
-        
-        switch(key) {
-            case 'esc':
-                socket.emit('specialKey', 'esc');
-                break;
-            case 'tab':
-                socket.emit('specialKey', 'tab');
-                break;
-            case 'ctrl':
-                isCtrlPressed = !isCtrlPressed;
-                document.querySelector('[data-key="ctrl"]').classList.toggle('active', isCtrlPressed);
-                break;
-            case 'alt':
-                isAltPressed = !isAltPressed;
-                document.querySelector('[data-key="alt"]').classList.toggle('active', isAltPressed);
-                break;
-            case 'ctrl-c':
-                socket.emit('specialKey', 'ctrl+c');
-                break;
-            case 'ctrl-d':
-                socket.emit('specialKey', 'ctrl+d');
-                break;
-            case 'ctrl-z':
-                socket.emit('specialKey', 'ctrl+z');
-                break;
-            case 'ctrl-l':
-                socket.emit('specialKey', 'ctrl+l');
-                break;
-            case 'ctrl-a':
-                socket.emit('specialKey', 'ctrl+a');
-                break;
-            case 'ctrl-e':
-                socket.emit('specialKey', 'ctrl+e');
-                break;
-            case 'ctrl-u':
-                socket.emit('specialKey', 'ctrl+u');
-                break;
-            case 'ctrl-k':
-                socket.emit('specialKey', 'ctrl+k');
-                break;
-            case 'left':
-                socket.emit('specialKey', 'left');
-                break;
-            case 'right':
-                socket.emit('specialKey', 'right');
-                break;
-            case 'up':
-                socket.emit('specialKey', 'up');
-                break;
-            case 'down':
-                socket.emit('specialKey', 'down');
-                break;
-            case 'home':
-                terminal.write('\x1b[H');
-                break;
-            case 'end':
-                terminal.write('\x1b[F');
-                break;
-            case 'pgup':
-                terminal.write('\x1b[5~');
-                break;
-            case 'pgdn':
-                terminal.write('\x1b[6~');
-                break;
-            case 'pipe':
-                terminal.write('|');
-                break;
-            case 'slash':
-                terminal.write('/');
-                break;
-            case 'dot':
-                terminal.write('.');
-                break;
-            case 'space':
-                terminal.write(' ');
-                break;
-        }
-        
-        // Reset modifier keys after a short delay
-        if (['ctrl-c', 'ctrl-d', 'ctrl-z', 'ctrl-l', 'ctrl-a', 'ctrl-e', 'ctrl-u', 'ctrl-k'].includes(key)) {
-            setTimeout(() => {
-                isCtrlPressed = false;
-                document.querySelector('[data-key="ctrl"]')?.classList.remove('active');
-            }, 100);
-        }
-    }
-    
-    // Keyboard toggle
+    // Keyboard toggle - hide/show toolbar
     const quickActions = document.querySelector('.quick-actions');
     keyboardToggle.addEventListener('click', () => {
         isKeyboardVisible = !isKeyboardVisible;
@@ -252,18 +142,6 @@ document.addEventListener('DOMContentLoaded', () => {
         terminal.write('\x1b[2J\x1b[H');
     });
     
-    // Restart shell
-    restartBtn.addEventListener('click', () => {
-        terminal.clear();
-        shellActive = true;
-        socket.connect();
-    });
-    
-    // New tab
-    newTabBtn.addEventListener('click', () => {
-        window.open(window.location.href, '_blank');
-    });
-    
     // Handle window resize
     window.addEventListener('resize', () => {
         if (fitAddon) {
@@ -273,9 +151,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize
     initTerminal();
-    setupKeyboard();
+    setupQuickActions();
     
-    // Auto-hide keyboard on mobile
+    // Auto-hide toolbar on mobile
     if (window.innerWidth < 768) {
         setTimeout(() => {
             keyboardToolbar.classList.add('hidden');
