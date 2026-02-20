@@ -1,4 +1,3 @@
-// iSH Web Terminal - Main Application
 const { Terminal } = window.Terminal;
 const { FitAddon } = window.FitAddon;
 const io = window.io;
@@ -6,60 +5,60 @@ const io = window.io;
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
     const terminalContainer = document.getElementById('terminal');
-    const keyboardToolbar = document.getElementById('keyboardToolbar');
-    const customKeyboard = document.getElementById('customKeyboard');
+    const toolbar = document.getElementById('toolbar');
+    const keyboard = document.getElementById('keyboard');
     const keyboardToggle = document.getElementById('keyboardToggle');
     const pasteBtn = document.getElementById('pasteBtn');
+    const statusTime = document.getElementById('statusTime');
     
     let terminal;
     let fitAddon;
-    let isKeyboardVisible = false;
+    let isKeyboardVisible = true;
+    let isShiftPressed = false;
+    let isCapsLocked = false;
     let isCtrlPressed = false;
-    let isAltPressed = false;
     let shellActive = true;
     
-    // Initialize terminal with modern theme
+    function updateTime() {
+        const now = new Date();
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        statusTime.textContent = `${hours}:${minutes}`;
+    }
+    updateTime();
+    setInterval(updateTime, 1000);
+    
     function initTerminal() {
         terminal = new Terminal({
             theme: {
-                background: '#0d1117',
-                foreground: '#e6edf3',
-                cursor: '#39c5cf',
-                cursorAccent: '#0d1117',
-                selectionBackground: 'rgba(88, 166, 255, 0.3)',
-                black: '#484f58',
-                red: '#ff7b72',
-                green: '#3fb950',
-                yellow: '#d29922',
-                blue: '#58a6ff',
-                magenta: '#a371f7',
-                cyan: '#39c5cf',
-                white: '#b1bac4',
-                brightBlack: '#6e7681',
-                brightRed: '#ffa198',
-                brightGreen: '#56d364',
-                brightYellow: '#e3b341',
-                brightBlue: '#79c0ff',
-                brightMagenta: '#bc8cff',
-                brightCyan: '#56d4dd',
-                brightWhite: '#f0f6fc'
+                background: '#000000',
+                foreground: '#ffffff',
+                cursor: '#30d158',
+                cursorAccent: '#000000',
+                selectionBackground: 'rgba(0, 122, 255, 0.4)',
+                black: '#000000',
+                red: '#ff453a',
+                green: '#30d158',
+                yellow: '#ffd60a',
+                blue: '#0a84ff',
+                magenta: '#bf5af2',
+                cyan: '#64d2ff',
+                white: '#ffffff'
             },
-            fontSize: 14,
-            fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace",
+            fontSize: 16,
+            fontFamily: "'JetBrains Mono', 'Menlo', 'Monaco', 'Consolas', monospace",
             cursorBlink: true,
             cursorStyle: 'block',
-            cursorWidth: 10,
             allowProposedApi: true,
-            scrollback: 10000,
-            tabStopWidth: 4,
-            windowsMode: false
+            scrollback: 5000,
+            tabStopWidth: 4
         });
         
         fitAddon = new FitAddon();
         terminal.loadAddon(fitAddon);
         
         terminal.open(terminalContainer);
-        fitAddon.fit();
+        setTimeout(() => fitAddon.fit(), 50);
         
         terminal.onData((data) => {
             if (shellActive) {
@@ -68,14 +67,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Handle socket connection
     socket.on('connect', () => {
-        updateConnectionStatus(true);
+        const statusDot = document.querySelector('.status-dot');
+        if (statusDot) {
+            statusDot.classList.remove('offline');
+            statusDot.classList.add('online');
+        }
     });
     
     socket.on('disconnect', () => {
-        updateConnectionStatus(false);
-        terminal.write('\r\n\x1b[31m✗ Disconnected from server\x1b[0m\r\n');
         shellActive = false;
     });
     
@@ -83,98 +83,134 @@ document.addEventListener('DOMContentLoaded', () => {
         terminal.write(output);
     });
     
-    // Update connection status
-    function updateConnectionStatus(connected) {
-        const statusDot = document.querySelector('.status-dot');
-        const statusText = document.querySelector('.status-text');
-        
-        if (connected) {
-            statusDot.classList.remove('offline');
-            statusDot.classList.add('online');
-            statusText.textContent = 'Connected';
-        } else {
-            statusDot.classList.remove('online');
-            statusDot.classList.add('offline');
-            statusText.textContent = 'Disconnected';
-        }
-    }
-    
-    // Setup keyboard buttons
-    function setupKeyboard() {
-        const keys = document.querySelectorAll('.key');
-        
-        keys.forEach(key => {
-            key.addEventListener('click', () => {
-                const keyValue = key.dataset.key;
-                handleKeyPress(keyValue);
-                key.classList.add('active');
-                setTimeout(() => key.classList.remove('active'), 100);
-            });
-        });
-    }
-    
-    // Handle key press from custom keyboard
     function handleKeyPress(key) {
         if (!shellActive) {
-            terminal.write('\x1b[31mShell not active. Refresh to reconnect.\x1b[0m\r\n');
+            terminal.write('\r\n[Shell disconnected. Refresh to reconnect.]\r\n');
             return;
         }
         
+        let keyToSend = key;
+        
+        if (isShiftPressed && /^[a-z]$/.test(key)) {
+            keyToSend = key.toUpperCase();
+        } else if (isShiftPressed) {
+            const shiftMap = {
+                '`': '~', '1': '!', '2': '@', '3': '#', '4': '$', '5': '%',
+                '6': '^', '7': '&', '8': '*', '9': '(', '0': ')', '-': '_',
+                '=': '+', '[': '{', ']': '}', '\\': '|', ';': ':', "'": '"',
+                ',': '<', '.': '>', '/': '?'
+            };
+            keyToSend = shiftMap[key] || key;
+        }
+        
         switch(key) {
-            case 'esc':
-                socket.emit('specialKey', 'esc');
+            case 'backspace':
+                socket.emit('specialKey', 'backspace');
                 break;
             case 'tab':
                 socket.emit('specialKey', 'tab');
                 break;
+            case 'enter':
+                socket.emit('specialKey', 'enter');
+                break;
+            case 'shift':
+                isShiftPressed = !isShiftPressed;
+                document.querySelectorAll('[data-key="shift"]').forEach(btn => {
+                    btn.classList.toggle('active', isShiftPressed);
+                });
+                break;
+            case 'caps':
+                isCapsLocked = !isCapsLocked;
+                document.querySelector('[data-key="caps"]').classList.toggle('active', isCapsLocked);
+                break;
             case 'ctrl':
                 isCtrlPressed = !isCtrlPressed;
-                document.querySelector('[data-key="ctrl"]').classList.toggle('active', isCtrlPressed);
+                document.querySelectorAll('[data-key="ctrl"]').forEach(btn => {
+                    btn.classList.toggle('active', isCtrlPressed);
+                });
+                if (isCtrlPressed) {
+                    setTimeout(() => {
+                        isCtrlPressed = false;
+                        document.querySelectorAll('[data-key="ctrl"]').forEach(btn => {
+                            btn.classList.remove('active');
+                        });
+                    }, 200);
+                }
                 break;
+            case 'fn':
             case 'alt':
-                isAltPressed = !isAltPressed;
-                document.querySelector('[data-key="alt"]').classList.toggle('active', isAltPressed);
+                break;
+            case 'esc':
+                socket.emit('specialKey', 'esc');
                 break;
             case 'left':
-                socket.emit('specialKey', 'left');
-                break;
             case 'right':
-                socket.emit('specialKey', 'right');
-                break;
             case 'up':
-                socket.emit('specialKey', 'up');
-                break;
             case 'down':
-                socket.emit('specialKey', 'down');
+                socket.emit('specialKey', key);
                 break;
-        }
-        
-        if (['esc', 'tab', 'left', 'right', 'up', 'down'].includes(key)) {
-            setTimeout(() => {
-                isCtrlPressed = false;
-                isAltPressed = false;
-                document.querySelector('[data-key="ctrl"]')?.classList.remove('active');
-                document.querySelector('[data-key="alt"]')?.classList.remove('active');
-            }, 100);
+            case ' ':
+                socket.emit('command', ' ');
+                break;
+            default:
+                if (isCtrlPressed && /^[a-z]$/.test(key)) {
+                    const ctrlChar = String.fromCharCode(key.charCodeAt(0) - 96);
+                    socket.emit('command', ctrlChar);
+                } else {
+                    socket.emit('command', keyToSend);
+                }
+                
+                if (isShiftPressed && key !== 'shift') {
+                    isShiftPressed = false;
+                    document.querySelectorAll('[data-key="shift"]').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                }
+                break;
         }
     }
     
-    // Keyboard toggle
+    function setupKeyboard() {
+        const keys = document.querySelectorAll('.key');
+        
+        keys.forEach(key => {
+            const handlePress = (e) => {
+                e.preventDefault();
+                const keyValue = key.dataset.key;
+                handleKeyPress(keyValue);
+                key.classList.add('active');
+                setTimeout(() => key.classList.remove('active'), 80);
+            };
+            
+            key.addEventListener('click', handlePress);
+            key.addEventListener('touchstart', handlePress, { passive: false });
+        });
+        
+        const quickKeys = document.querySelectorAll('.quick-key');
+        quickKeys.forEach(key => {
+            key.addEventListener('click', () => {
+                const keyValue = key.dataset.key;
+                handleKeyPress(keyValue);
+                key.classList.add('active');
+                setTimeout(() => key.classList.remove('active'), 80);
+            });
+        });
+    }
+    
     keyboardToggle.addEventListener('click', () => {
         isKeyboardVisible = !isKeyboardVisible;
         if (isKeyboardVisible) {
-            keyboardToolbar.classList.remove('hidden');
-            customKeyboard.classList.remove('hidden');
+            toolbar.classList.remove('hidden');
+            keyboard.classList.remove('hidden');
             keyboardToggle.classList.add('active');
         } else {
-            keyboardToolbar.classList.add('hidden');
-            customKeyboard.classList.add('hidden');
+            toolbar.classList.add('hidden');
+            keyboard.classList.add('hidden');
             keyboardToggle.classList.remove('active');
         }
-        setTimeout(() => fitAddon.fit(), 300);
+        setTimeout(() => fitAddon.fit(), 200);
     });
     
-    // Paste functionality
     pasteBtn.addEventListener('click', async () => {
         try {
             const text = await navigator.clipboard.readText();
@@ -182,26 +218,43 @@ document.addEventListener('DOMContentLoaded', () => {
                 terminal.write(text);
             }
         } catch (err) {
-            terminal.write('\x1b[33mUnable to access clipboard\x1b[0m\r\n');
+            terminal.write('\r\n[Unable to access clipboard]\r\n');
         }
     });
     
-    // Handle window resize
     window.addEventListener('resize', () => {
         if (fitAddon) {
-            fitAddon.fit();
+            setTimeout(() => fitAddon.fit(), 100);
         }
     });
     
-    // Initialize
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === 'Tab' || e.key === 'Backspace' || 
+            e.key.startsWith('Arrow') || e.key === 'Escape') {
+            return;
+        }
+        
+        if (e.ctrlKey || e.altKey || e.metaKey) {
+            return;
+        }
+        
+        if (document.activeElement.tagName !== 'TEXTAREA' && 
+            !document.activeElement.matches('input')) {
+            e.preventDefault();
+        }
+    });
+    
     initTerminal();
     setupKeyboard();
     
-    // Auto-hide keyboard on mobile
+    setTimeout(() => fitAddon.fit(), 500);
+    
     if (window.innerWidth < 768) {
         setTimeout(() => {
-            keyboardToolbar.classList.add('hidden');
-            customKeyboard.classList.add('hidden');
-        }, 3000);
+            if (!isKeyboardVisible) {
+                toolbar.classList.add('hidden');
+                keyboard.classList.add('hidden');
+            }
+        }, 2000);
     }
 });

@@ -67,7 +67,58 @@ io.on('connection', (socket) => {
   });
   
   socket.on('specialKey', (key) => {
-    handleSpecialKey(key, socket);
+    if (!shellProcess) return;
+    
+    switch(key) {
+      case 'backspace':
+        shellProcess.stdin.write('\x7f');
+        break;
+      case 'enter':
+        shellProcess.stdin.write('\r');
+        break;
+      case 'ctrl+c':
+        shellProcess.stdin.write('\x03');
+        break;
+      case 'ctrl+d':
+        shellProcess.stdin.write('\x04');
+        break;
+      case 'ctrl+z':
+        shellProcess.stdin.write('\x1a');
+        break;
+      case 'ctrl+l':
+        shellProcess.stdin.write('\x0c');
+        break;
+      case 'ctrl+a':
+        shellProcess.stdin.write('\x01');
+        break;
+      case 'ctrl+e':
+        shellProcess.stdin.write('\x05');
+        break;
+      case 'ctrl+u':
+        shellProcess.stdin.write('\x15');
+        break;
+      case 'ctrl+k':
+        shellProcess.stdin.write('\x0b');
+        break;
+      case 'esc':
+        shellProcess.stdin.write('\x1b');
+        break;
+      case 'tab':
+        shellProcess.stdin.write('\t');
+        break;
+      case 'up':
+        shellProcess.stdin.write('\x1b[A');
+        break;
+      case 'down':
+        shellProcess.stdin.write('\x1b[B');
+        break;
+      case 'left':
+        shellProcess.stdin.write('\x1b[D');
+        break;
+      case 'right':
+        shellProcess.stdin.write('\x1b[C');
+        break;
+    }
   });
   
   socket.on('disconnect', () => {

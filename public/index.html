@@ -2,49 +2,74 @@
 <html lang="th" dir="ltr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iSH Web Terminal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>iSH Web</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <div class="header-content">
-                <div class="header-left">
-                    <div class="logo">
-                        <div class="logo-icon">>_</div>
-                        <span class="title">iSH Web</span>
-                    </div>
-                </div>
-                <div class="header-right">
-                    <div class="connection-status" id="connectionStatus">
-                        <span class="status-dot offline"></span>
-                        <span class="status-text">Disconnected</span>
-                    </div>
-                </div>
+    <div class="app-container">
+        <div class="status-bar">
+            <div class="status-left">
+                <span class="status-time" id="statusTime">--:--</span>
             </div>
-        </header>
+            <div class="status-center">
+                <span class="status-title">iSH</span>
+            </div>
+            <div class="status-right">
+                <svg class="battery-icon" viewBox="0 0 25 12" width="25" height="12">
+                    <rect x="0.5" y="2.5" width="20" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="1"/>
+                    <rect x="2" y="4" width="14" height="6" rx="1" fill="currentColor"/>
+                    <path d="M22 5v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                <svg class="wifi-icon" viewBox="0 0 24 24" width="18" height="18">
+                    <path d="M12 18c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm0-6c3.31 0 6 2.69 6 6h-2c0-2.21-1.79-4-4-4s-4 1.79-4 4H6c0-3.31 2.69-6 6-6zm0-4c4.97 0 9 4.03 9 9h-2c0-3.87-3.13-7-7-7s-7 3.13-7 7H3c0-4.97 4.03-9 9-9z" fill="currentColor"/>
+                </svg>
+            </div>
+        </div>
 
-        <div class="main-content">
+        <div class="terminal-wrapper">
+            <div class="terminal-header">
+                <div class="terminal-dots">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <span class="terminal-title">root</span>
+            </div>
             <div class="terminal-container">
                 <div id="terminal" class="terminal"></div>
             </div>
+        </div>
 
-            <div class="keyboard-toolbar" id="keyboardToolbar">
-                <div class="toolbar-buttons">
-                    <button class="toolbar-btn primary" id="pasteBtn" title="Paste">
+        <div class="toolbar" id="toolbar">
+            <div class="toolbar-top">
+                <div class="toolbar-left">
+                    <button class="quick-key" data-key="ctrl">Ctrl</button>
+                    <button class="quick-key" data-key="esc">ESC</button>
+                    <button class="quick-key" data-key="tab">Tab</button>
+                </div>
+                <div class="toolbar-center">
+                    <button class="quick-key arrow" data-key="left">←</button>
+                    <button class="quick-key arrow" data-key="down">↓</button>
+                    <button class="quick-key arrow" data-key="up">↑</button>
+                    <button class="quick-key arrow" data-key="right">→</button>
+                </div>
+                <div class="toolbar-right">
+                    <button class="icon-btn" id="pasteBtn" title="Paste">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/>
                             <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
                         </svg>
-                        <span>Paste</span>
                     </button>
-                    <button class="toolbar-btn" id="keyboardToggle" title="Toggle Keyboard">
+                    <button class="icon-btn active" id="keyboardToggle" title="Keyboard">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="2" y="4" width="20" height="16" rx="2" ry="2"/>
+                            <rect x="2" y="4" width="20" height="16" rx="2"/>
                             <line x1="6" y1="8" x2="6" y2="8"/>
                             <line x1="10" y1="8" x2="10" y2="8"/>
                             <line x1="14" y1="8" x2="14" y2="8"/>
@@ -54,21 +79,83 @@
                             <line x1="16" y1="12" x2="16" y2="12"/>
                             <line x1="7" y1="16" x2="17" y2="16"/>
                         </svg>
-                        <span>Keyboard</span>
                     </button>
                 </div>
+            </div>
 
-                <div class="custom-keyboard" id="customKeyboard">
-                    <div class="keyboard-row">
-                        <button class="key special ctrl" data-key="ctrl">Ctrl</button>
-                        <button class="key special alt" data-key="alt">Alt</button>
-                        <button class="key special" data-key="esc">Esc</button>
-                        <button class="key special" data-key="tab">Tab</button>
-                        <button class="key special" data-key="up">↑</button>
-                        <button class="key special" data-key="down">↓</button>
-                        <button class="key special" data-key="left">←</button>
-                        <button class="key special" data-key="right">→</button>
-                    </div>
+            <div class="keyboard" id="keyboard">
+                <div class="keyboard-row">
+                    <button class="key" data-key="`">~</button>
+                    <button class="key" data-key="1">1</button>
+                    <button class="key" data-key="2">2</button>
+                    <button class="key" data-key="3">3</button>
+                    <button class="key" data-key="4">4</button>
+                    <button class="key" data-key="5">5</button>
+                    <button class="key" data-key="6">6</button>
+                    <button class="key" data-key="7">7</button>
+                    <button class="key" data-key="8">8</button>
+                    <button class="key" data-key="9">9</button>
+                    <button class="key" data-key="0">0</button>
+                    <button class="key" data-key="-">-</button>
+                    <button class="key" data-key="=">=</button>
+                    <button class="key wide" data-key="backspace">⌫</button>
+                </div>
+                <div class="keyboard-row">
+                    <button class="key wide" data-key="tab">Tab</button>
+                    <button class="key" data-key="q">q</button>
+                    <button class="key" data-key="w">w</button>
+                    <button class="key" data-key="e">e</button>
+                    <button class="key" data-key="r">r</button>
+                    <button class="key" data-key="t">t</button>
+                    <button class="key" data-key="y">y</button>
+                    <button class="key" data-key="u">u</button>
+                    <button class="key" data-key="i">i</button>
+                    <button class="key" data-key="o">o</button>
+                    <button class="key" data-key="p">p</button>
+                    <button class="key" data-key="[">[</button>
+                    <button class="key" data-key="]">]</button>
+                    <button class="key" data-key="\">\</button>
+                </div>
+                <div class="keyboard-row">
+                    <button class="key wide" data-key="caps">Caps</button>
+                    <button class="key" data-key="a">a</button>
+                    <button class="key" data-key="s">s</button>
+                    <button class="key" data-key="d">d</button>
+                    <button class="key" data-key="f">f</button>
+                    <button class="key" data-key="g">g</button>
+                    <button class="key" data-key="h">h</button>
+                    <button class="key" data-key="j">j</button>
+                    <button class="key" data-key="k">k</button>
+                    <button class="key" data-key="l">l</button>
+                    <button class="key" data-key=";">;</button>
+                    <button class="key" data-key="'">'</button>
+                    <button class="key wide" data-key="enter">Enter</button>
+                </div>
+                <div class="keyboard-row">
+                    <button class="key wide" data-key="shift">⇧</button>
+                    <button class="key" data-key="z">z</button>
+                    <button class="key" data-key="x">x</button>
+                    <button class="key" data-key="c">c</button>
+                    <button class="key" data-key="v">v</button>
+                    <button class="key" data-key="b">b</button>
+                    <button class="key" data-key="n">n</button>
+                    <button class="key" data-key="m">m</button>
+                    <button class="key" data-key=",">,</button>
+                    <button class="key" data-key=".">.</button>
+                    <button class="key" data-key="/">/</button>
+                    <button class="key wide" data-key="shift">⇧</button>
+                </div>
+                <div class="keyboard-row">
+                    <button class="key" data-key="ctrl">Ctrl</button>
+                    <button class="key" data-key="fn">fn</button>
+                    <button class="key" data-key="alt">Alt</button>
+                    <button class="key space" data-key=" ">space</button>
+                    <button class="key" data-key="alt">Alt</button>
+                    <button class="key" data-key="ctrl">Ctrl</button>
+                    <button class="key arrow" data-key="left">←</button>
+                    <button class="key arrow" data-key="down">↓</button>
+                    <button class="key arrow" data-key="up">↑</button>
+                    <button class="key arrow" data-key="right">→</button>
                 </div>
             </div>
         </div>
