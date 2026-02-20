@@ -1,6 +1,7 @@
-import { Terminal } from 'xterm';
-import { FitAddon } from 'xterm-addon-fit';
-import io from 'socket.io-client';
+// Use global variables from CDN (loaded before this script)
+const { Terminal } = window.Terminal;
+const { FitAddon } = window.FitAddon;
+const io = window.io;
 
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
