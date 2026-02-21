@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         let keyToSend = key;
         
-        if (isShiftPressed && /^[a-z]$/.test(key)) {
+        if ((isShiftPressed || isCapsLocked) && /^[a-z]$/.test(key)) {
             keyToSend = key.toUpperCase();
         } else if (isShiftPressed) {
             const shiftMap = {
@@ -122,6 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'caps':
                 isCapsLocked = !isCapsLocked;
                 document.querySelector('[data-key="caps"]').classList.toggle('active', isCapsLocked);
+                updateKeyCase();
                 break;
             case 'ctrl':
                 isCtrlPressed = !isCtrlPressed;
@@ -134,13 +135,25 @@ document.addEventListener('DOMContentLoaded', () => {
                         document.querySelectorAll('[data-key="ctrl"]').forEach(btn => {
                             btn.classList.remove('active');
                         });
-                    }, 200);
+                    }, 500);
                 }
                 break;
-            case 'fn':
             case 'alt':
+                document.querySelectorAll('[data-key="alt"]').forEach(btn => {
+                    btn.classList.toggle('active');
+                });
+                setTimeout(() => {
+                    document.querySelectorAll('[data-key="alt"]').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                }, 200);
+                break;
+            case 'cmd':
+                break;
+            case 'fn':
                 break;
             case 'esc':
+            case 'ESC':
                 socket.emit('specialKey', 'esc');
                 break;
             case 'left':
@@ -170,6 +183,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
+    function updateKeyCase() {
+        const letterKeys = document.querySelectorAll('.key[data-key]');
+        letterKeys.forEach(btn => {
+            const key = btn.dataset.key;
+            if (/^[a-z]$/.test(key)) {
+                const char = (isCapsLocked || isShiftPressed) ? key.toUpperCase() : key;
+                btn.textContent = char;
+            }
+        });
+    }
+    
     function setupKeyboard() {
         const keys = document.querySelectorAll('.key');
         
@@ -190,7 +214,15 @@ document.addEventListener('DOMContentLoaded', () => {
         quickKeys.forEach(key => {
             key.addEventListener('click', () => {
                 const keyValue = key.dataset.key;
-                handleKeyPress(keyValue);
+                if (keyValue === 'esc') {
+                    socket.emit('specialKey', 'esc');
+                } else if (keyValue === 'tab') {
+                    socket.emit('specialKey', 'tab');
+                } else if (keyValue === 'ctrl' || keyValue === 'alt') {
+                    handleKeyPress(keyValue);
+                } else if (['left', 'right', 'up', 'down'].includes(keyValue)) {
+                    socket.emit('specialKey', keyValue);
+                }
                 key.classList.add('active');
                 setTimeout(() => key.classList.remove('active'), 80);
             });

@@ -10,15 +10,18 @@
     --bg-dark: #1c1c1e;
     --bg-gray: #2c2c2e;
     --bg-light-gray: #3a3a3c;
+    --bg-keyboard: #2c2c2e;
     --text-white: #ffffff;
     --text-gray: #8e8e93;
     --accent-blue: #007aff;
     --accent-green: #30d158;
     --accent-orange: #ff9f0a;
     --accent-red: #ff453a;
-    --keyboard-bg: #000000;
-    --key-bg: #3a3a3c;
-    --key-active: #5a5a5c;
+    --key-bg: #636366;
+    --key-bg-dark: #505053;
+    --key-text: #ffffff;
+    --key-special-bg: #a8a8ad;
+    --key-special-text: #000000;
 }
 
 html, body {
@@ -156,10 +159,12 @@ body {
 }
 
 .toolbar {
-    background: var(--bg-black);
+    background: var(--bg-keyboard);
     flex-shrink: 0;
-    transition: transform 0.2s ease;
-    border-top: 0.5px solid var(--bg-light-gray);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border-top: 0.5px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
 }
 
 .toolbar.hidden {
@@ -170,14 +175,15 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 12px;
-    background: var(--bg-dark);
-    border-bottom: 0.5px solid var(--bg-light-gray);
+    padding: 6px 8px;
+    background: var(--bg-gray);
+    border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+    min-height: 44px;
 }
 
 .toolbar-left, .toolbar-center, .toolbar-right {
     display: flex;
-    gap: 6px;
+    gap: 4px;
 }
 
 .toolbar-center {
@@ -190,16 +196,24 @@ body {
     background: var(--key-bg);
     border: none;
     color: var(--text-white);
-    padding: 8px 16px;
+    padding: 6px 10px;
     border-radius: 5px;
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.1s;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-.quick-key:active {
-    background: var(--key-active);
+.quick-key:active, .quick-key.active {
+    background: var(--accent-blue);
+    transform: scale(0.95);
+}
+
+.quick-key.arrow {
+    font-size: 14px;
+    padding: 6px 8px;
+    min-width: 36px;
 }
 
 .icon-btn {
@@ -220,8 +234,8 @@ body {
 }
 
 .icon-btn svg {
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
 }
 
 .icon-btn.active {
@@ -229,11 +243,11 @@ body {
 }
 
 .keyboard {
-    padding: 6px 4px 20px 4px;
+    padding: 8px 4px 24px 4px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    background: var(--keyboard-bg);
+    gap: 8px;
+    background: var(--bg-keyboard);
 }
 
 .keyboard.hidden {
@@ -246,15 +260,36 @@ body {
     gap: 4px;
 }
 
+.keyboard-row.special-row {
+    gap: 3px;
+}
+
+.keyboard-row.special-row .key {
+    min-width: 26px;
+    height: 38px;
+    font-size: 16px;
+}
+
+.keyboard-row.special-row .key.wide {
+    min-width: 44px;
+}
+
+.keyboard-row.special-row .key.special-key {
+    background: var(--key-special-bg);
+    color: var(--key-special-text);
+    font-size: 14px;
+    min-width: 44px;
+}
+
 .key {
     background: var(--key-bg);
     border: none;
-    color: var(--text-white);
-    border-radius: 4px;
+    color: var(--key-text);
+    border-radius: 5px;
     font-size: 22px;
     font-weight: 400;
-    min-width: 32px;
-    height: 44px;
+    min-width: 28px;
+    height: 42px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -263,88 +298,67 @@ body {
     user-select: none;
     -webkit-user-select: none;
     font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .key:active, .key.active {
-    background: var(--key-active);
-    transform: scale(0.96);
+    background: var(--key-bg-dark);
+    transform: scale(0.95);
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
 }
 
 .key.wide {
-    min-width: 48px;
+    min-width: 42px;
     font-size: 16px;
+    flex: 1;
+    max-width: 60px;
 }
 
-.key.space {
+.key.space-key {
     min-width: 160px;
     font-size: 16px;
+    flex: 2;
 }
 
-.key.arrow {
+.key.modifier-key {
+    background: var(--key-special-bg);
+    color: var(--key-special-text);
+    font-size: 14px;
+    min-width: 48px;
+    flex: 1;
+}
+
+.key.arrow-key {
     background: var(--key-bg);
     min-width: 38px;
+    font-size: 18px;
 }
 
-.keyboard-row:nth-child(1) .key:first-child {
-    font-size: 16px;
-}
-
-.keyboard-row:nth-child(1) .key:nth-child(13) {
-    min-width: 56px;
-}
-
-.keyboard-row:nth-child(2) .key:nth-child(1),
-.keyboard-row:nth-child(3) .key:nth-child(1),
-.keyboard-row:nth-child(4) .key:nth-child(1),
-.keyboard-row:nth-child(4) .key:nth-child(12) {
-    min-width: 60px;
-    font-size: 16px;
-}
-
-.keyboard-row:nth-child(3) .key:nth-child(13) {
-    min-width: 74px;
-}
-
-.keyboard-row:nth-child(5) .key {
-    font-size: 14px;
-    min-width: 42px;
-}
-
-.keyboard-row:nth-child(5) .key.space {
-    min-width: 120px;
-}
-
-.keyboard-row:nth-child(5) .key:nth-child(4) {
-    min-width: 100px;
-}
-
-.keyboard-row:nth-child(1) .key:nth-child(13) {
-    min-width: 48px;
-}
-
-.keyboard-row:nth-child(2) .key:nth-child(1),
-.keyboard-row:nth-child(3) .key:nth-child(1),
-.keyboard-row:nth-child(4) .key:nth-child(1),
-.keyboard-row:nth-child(4) .key:nth-child(12) {
+.keyboard-row:nth-child(2) .key:first-child {
     min-width: 52px;
     font-size: 14px;
 }
 
-.keyboard-row:nth-child(3) .key:nth-child(13) {
-    min-width: 64px;
+.keyboard-row:nth-child(3) .key:first-child,
+.keyboard-row:nth-child(4) .key:first-child {
+    min-width: 52px;
+    font-size: 14px;
 }
 
-.keyboard-row:nth-child(5) .key {
-    font-size: 12px;
-    min-width: 36px;
-}
-
-.keyboard-row:nth-child(5) .key.space {
-    min-width: 100px;
-}
-
-.keyboard-row:nth-child(5) .key:nth-child(4) {
+.keyboard-row:nth-child(3) .key:last-child {
     min-width: 80px;
+}
+
+.keyboard-row.bottom-row {
+    gap: 5px;
+}
+
+.keyboard-row.bottom-row .key {
+    height: 42px;
+}
+
+.keyboard-row.bottom-row .key.space-key {
+    height: 42px;
 }
 
 ::-webkit-scrollbar {
@@ -363,17 +377,33 @@ body {
 
 @media (max-width: 400px) {
     .key {
-        min-width: 22px;
+        min-width: 20px;
         height: 36px;
-        font-size: 16px;
+        font-size: 18px;
     }
     
     .key.wide {
-        min-width: 32px;
+        min-width: 28px;
         font-size: 12px;
     }
     
-    .key.space {
+    .key.space-key {
         min-width: 100px;
+        font-size: 14px;
+    }
+    
+    .key.modifier-key {
+        min-width: 36px;
+        font-size: 11px;
+    }
+    
+    .keyboard-row.special-row .key {
+        min-width: 20px;
+        height: 32px;
+        font-size: 14px;
+    }
+    
+    .keyboard-row.special-row .key.special-key {
+        min-width: 36px;
     }
 }
