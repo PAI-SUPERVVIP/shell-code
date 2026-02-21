@@ -1,9 +1,10 @@
 {
-  "name": "opencode",
+  "name": "shell-code",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "iSH Web Terminal",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
