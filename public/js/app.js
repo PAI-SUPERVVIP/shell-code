@@ -60,6 +60,12 @@ document.addEventListener('DOMContentLoaded', () => {
         terminal.open(terminalContainer);
         setTimeout(() => fitAddon.fit(), 50);
         
+        terminal.focus();
+        
+        terminalContainer.addEventListener('click', () => {
+            terminal.focus();
+        });
+        
         terminal.onData((data) => {
             if (shellActive) {
                 socket.emit('command', data);
@@ -244,6 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     pasteBtn.addEventListener('click', async () => {
+        terminal.focus();
         try {
             const text = await navigator.clipboard.readText();
             if (text) {
